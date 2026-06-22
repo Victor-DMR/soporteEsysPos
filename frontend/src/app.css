@@ -1,0 +1,430 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html,
+    body,
+    #root {
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    body {
+        @apply bg-[#0b141a] text-slate-100 antialiased;
+    }
+
+    *,
+    *::before,
+    *::after {
+        min-width: 0;
+    }
+
+    img,
+    video,
+    canvas,
+    svg {
+        max-width: 100%;
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.72) rgba(15, 23, 42, 0.28);
+    }
+
+    *::-webkit-scrollbar {
+        width: 0.7rem;
+        height: 0.7rem;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.28);
+        border-radius: 999px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.72);
+        border: 2px solid rgba(11, 20, 26, 0.95);
+        border-radius: 999px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    *::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    input,
+    select,
+    textarea {
+        @apply outline-none;
+    }
+}
+
+@layer components {
+    .card {
+        @apply rounded-2xl border border-white/10 bg-[#111b21]/95 shadow-soft backdrop-blur;
+    }
+
+    .btn-primary {
+        @apply inline-flex max-w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-brand-blueDark disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-secondary {
+        @apply inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#202c33] px-4 py-2.5 text-center text-sm font-semibold text-slate-100 shadow-sm transition hover:border-brand-green/50 hover:bg-[#26343d] disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .input {
+        @apply min-h-12 w-full min-w-0 max-w-full rounded-xl border border-white/10 bg-[#202c33] px-3 py-2.5 text-sm text-slate-100 shadow-sm transition placeholder:text-slate-400 focus:border-brand-green focus:ring-4 focus:ring-emerald-500/10;
+    }
+
+    .table-cell-updated {
+        animation: pulseCell 1.3s ease-out;
+    }
+
+    .table-icon-button {
+        @apply inline-flex h-9 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#202c33] text-slate-100 shadow-sm transition hover:border-brand-green/50 hover:bg-[#26343d] disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .table-cell-editor {
+        @apply h-8 min-h-8 w-full min-w-0 rounded-lg border border-brand-green/40 bg-[#202c33] px-2 py-1 pr-9 text-xs font-semibold leading-none text-slate-100 shadow-sm transition focus:border-brand-green focus:ring-2 focus:ring-emerald-500/10;
+    }
+
+    .admin-scrollbar {
+        scrollbar-color: rgba(255, 255, 255, 0.78) rgba(17, 27, 33, 0.82);
+    }
+
+    .admin-scrollbar::-webkit-scrollbar-track {
+        background: rgba(17, 27, 33, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .theme-select {
+        min-height: 2.5rem !important;
+        height: 2.5rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .admin-light-theme {
+        --admin-page: #f8fafc;
+        --admin-shell: rgba(226, 232, 240, 0.72);
+        --admin-header: rgba(241, 245, 249, 0.9);
+        --admin-card: rgba(226, 232, 240, 0.78);
+        --admin-surface: rgba(241, 245, 249, 0.94);
+        --admin-surface-strong: rgba(248, 250, 252, 0.96);
+        --admin-surface-muted: rgba(203, 213, 225, 0.62);
+        --admin-border: rgba(100, 116, 139, 0.32);
+        --admin-text: #0f172a;
+        --admin-muted: #64748b;
+        --support-table-head-bg: #334155;
+        --support-table-head-border: rgba(148, 163, 184, 0.46);
+        --table-button-hover: rgba(203, 213, 225, 0.78);
+        background-color: var(--admin-page) !important;
+        color: var(--admin-text);
+        color-scheme: light;
+    }
+
+    .admin-theme-blue {
+        --admin-page: #dbeafe;
+        --admin-shell: #bfdbfe;
+        --admin-header: rgba(191, 219, 254, 0.95);
+        --admin-card: rgba(147, 197, 253, 0.42);
+        --admin-surface: rgba(191, 219, 254, 0.78);
+        --admin-surface-strong: rgba(219, 234, 254, 0.95);
+        --admin-surface-muted: rgba(96, 165, 250, 0.34);
+        --admin-border: rgba(37, 99, 235, 0.34);
+        --admin-text: #0b2440;
+        --admin-muted: #315375;
+        --support-table-head-bg: #1d4ed8;
+        --support-table-head-border: rgba(147, 197, 253, 0.52);
+        --table-button-hover: rgba(96, 165, 250, 0.28);
+    }
+
+    .admin-theme-green {
+        --admin-page: #dcfce7;
+        --admin-shell: #bbf7d0;
+        --admin-header: rgba(187, 247, 208, 0.95);
+        --admin-card: rgba(134, 239, 172, 0.42);
+        --admin-surface: rgba(187, 247, 208, 0.78);
+        --admin-surface-strong: rgba(220, 252, 231, 0.95);
+        --admin-surface-muted: rgba(74, 222, 128, 0.34);
+        --admin-border: rgba(22, 163, 74, 0.34);
+        --admin-text: #102916;
+        --admin-muted: #345f42;
+        --support-table-head-bg: #15803d;
+        --support-table-head-border: rgba(134, 239, 172, 0.52);
+        --table-button-hover: rgba(74, 222, 128, 0.28);
+    }
+
+    .admin-theme-pink {
+        --admin-page: #fce7f3;
+        --admin-shell: #fbcfe8;
+        --admin-header: rgba(251, 207, 232, 0.95);
+        --admin-card: rgba(249, 168, 212, 0.42);
+        --admin-surface: rgba(251, 207, 232, 0.78);
+        --admin-surface-strong: rgba(252, 231, 243, 0.95);
+        --admin-surface-muted: rgba(244, 114, 182, 0.34);
+        --admin-border: rgba(219, 39, 119, 0.34);
+        --admin-text: #3b1027;
+        --admin-muted: #70435d;
+        --support-table-head-bg: #be185d;
+        --support-table-head-border: rgba(249, 168, 212, 0.54);
+        --table-button-hover: rgba(244, 114, 182, 0.28);
+    }
+
+    .admin-dark-theme {
+        --support-table-head-bg: #1f8f2f;
+        --support-table-head-border: rgba(67, 169, 41, 0.4);
+    }
+
+    .support-table-head {
+        background-color: var(--support-table-head-bg, #43a929) !important;
+        color: #ffffff !important;
+        box-shadow: inset 0 0 0 1px var(--support-table-head-border, rgba(16, 185, 129, 0.3));
+    }
+
+    .support-table-head th {
+        border-color: var(--support-table-head-border, rgba(16, 185, 129, 0.3)) !important;
+        border-top-width: 1px;
+        border-bottom-width: 1px;
+        border-right-width: 1px;
+    }
+
+    .support-table-head th:first-child {
+        border-left-width: 1px;
+        border-top-left-radius: 0.5rem;
+        border-bottom-left-radius: 0.5rem;
+    }
+
+    .support-table-head th:last-child {
+        border-top-right-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+    }
+
+    .admin-light-theme .table-icon-button,
+    .admin-light-theme .table-detail-button {
+        background-color: var(--admin-surface) !important;
+        border-color: var(--admin-border) !important;
+        color: var(--admin-text) !important;
+    }
+
+    .admin-light-theme .table-icon-button:hover,
+    .admin-light-theme .table-detail-button:hover {
+        background-color: var(--table-button-hover, var(--admin-surface-muted)) !important;
+        border-color: var(--support-table-head-border, var(--admin-border)) !important;
+    }
+
+    .admin-light-theme .card,
+    .admin-light-theme form,
+    .admin-light-theme article,
+    .admin-light-theme [class*="bg-[#111b21"],
+    .admin-light-theme [class*="bg-[#202c33"],
+    .admin-light-theme [class*="bg-[#0b141a"],
+    .admin-light-theme [class*="bg-white/5"],
+    .admin-light-theme [class*="bg-white/10"] {
+        background-color: var(--admin-card) !important;
+    }
+
+    .admin-light-theme [class*="bg-black/25"],
+    .admin-light-theme [class*="bg-[#111b21]/95"],
+    .admin-light-theme [class*="bg-[#111b21]"] {
+        background-color: var(--admin-header) !important;
+    }
+
+    .admin-light-theme [class*="bg-[#202c33"] {
+        background-color: var(--admin-surface) !important;
+    }
+
+    .admin-light-theme tbody td {
+        background-color: var(--admin-surface-strong);
+    }
+
+    .admin-light-theme tbody tr:hover td {
+        background-color: var(--admin-surface-muted);
+    }
+
+    .admin-light-theme [class*="border-white/10"],
+    .admin-light-theme [class*="ring-white/10"] {
+        border-color: var(--admin-border) !important;
+        --tw-ring-color: var(--admin-border) !important;
+    }
+
+    .admin-light-theme .input,
+    .admin-light-theme input,
+    .admin-light-theme select,
+    .admin-light-theme textarea {
+        background-color: var(--admin-surface-strong) !important;
+        border-color: var(--admin-border) !important;
+        color: var(--admin-text) !important;
+    }
+
+    .admin-light-theme input::placeholder,
+    .admin-light-theme textarea::placeholder {
+        color: var(--admin-muted) !important;
+    }
+
+    .admin-light-theme .btn-secondary {
+        background-color: var(--admin-surface-muted) !important;
+        border-color: var(--admin-border) !important;
+        color: var(--admin-text) !important;
+    }
+
+    .admin-light-theme .btn-secondary:hover {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme > aside,
+    .admin-light-theme > main + aside,
+    .admin-light-theme aside[class*="fixed"] {
+        background-color: var(--admin-shell) !important;
+    }
+
+    .admin-light-theme header[class*="sticky"] {
+        background-color: var(--admin-header) !important;
+    }
+
+    .admin-light-theme main > div,
+    .admin-light-theme main [class*="rounded-2xl"] {
+        border-color: var(--admin-border) !important;
+    }
+
+    .admin-light-theme .card,
+    .admin-light-theme form,
+    .admin-light-theme article,
+    .admin-light-theme [class*="rounded-2xl"][class*="border"] {
+        background-color: var(--admin-card) !important;
+    }
+
+    .admin-light-theme .input,
+    .admin-light-theme .btn-secondary,
+    .admin-light-theme [class*="rounded-xl"][class*="border"] {
+        background-color: var(--admin-surface) !important;
+    }
+
+    .admin-light-theme tbody td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr:hover td {
+        background-color: var(--admin-surface-muted) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-amber-400 td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-amber-400:hover td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-sky-400 td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-sky-400:hover td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-violet-400 td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-violet-400:hover td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-emerald-400 td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-emerald-400:hover td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-rose-400 td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody tr.border-l-rose-400:hover td {
+        background-color: var(--admin-surface-strong) !important;
+    }
+
+    .admin-light-theme tbody td.border-l-amber-400 {
+        border-left-color: #fbbf24 !important;
+    }
+
+    .admin-light-theme tbody td.border-l-sky-400 {
+        border-left-color: #38bdf8 !important;
+    }
+
+    .admin-light-theme tbody td.border-l-violet-400 {
+        border-left-color: #a78bfa !important;
+    }
+
+    .admin-light-theme tbody td.border-l-emerald-400 {
+        border-left-color: #34d399 !important;
+    }
+
+    .admin-light-theme tbody td.border-l-rose-400 {
+        border-left-color: #fb7185 !important;
+    }
+
+    .admin-light-theme .editable-cell-display {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .admin-light-theme .text-white,
+    .admin-light-theme .text-slate-50,
+    .admin-light-theme .text-slate-100,
+    .admin-light-theme .text-slate-200,
+    .admin-light-theme .text-slate-300 {
+        color: var(--admin-text) !important;
+    }
+
+    .admin-light-theme .text-slate-400,
+    .admin-light-theme .text-slate-500 {
+        color: var(--admin-muted) !important;
+    }
+
+    .admin-light-theme .shadow-black\/30,
+    .admin-light-theme .shadow-black\/40,
+    .admin-light-theme .shadow-black\/50 {
+        --tw-shadow-color: rgba(15, 23, 42, 0.16) !important;
+    }
+
+    .admin-light-theme .support-table-head,
+    .admin-light-theme .support-table-head *,
+    .admin-light-theme .btn-primary,
+    .admin-light-theme .btn-primary *,
+    .admin-light-theme .bg-brand-blue,
+    .admin-light-theme .bg-brand-blue *,
+    .admin-light-theme .bg-brand-green,
+    .admin-light-theme .bg-brand-green * {
+        color: #ffffff !important;
+    }
+
+    .admin-light-theme .admin-modal-panel {
+        background-color: var(--admin-page) !important;
+        border-color: var(--support-table-head-border, var(--admin-border)) !important;
+        color: var(--admin-text) !important;
+    }
+
+    .admin-light-theme .admin-modal-panel [class*="bg-[#202c33"],
+    .admin-light-theme .admin-modal-panel [class*="bg-[#0b141a"],
+    .admin-light-theme .admin-modal-panel [class*="bg-white/10"],
+    .admin-light-theme .admin-modal-panel [class*="bg-white/5"] {
+        background-color: var(--admin-surface-strong) !important;
+        border-color: var(--admin-border) !important;
+    }
+
+}
+
+@keyframes pulseCell {
+    0% { background: rgba(67, 169, 41, 0.35); }
+    100% { background: transparent; }
+}
