@@ -1932,9 +1932,7 @@ function CreateSupportButton({ technicians, onCreated }) {
         setForm((current) => ({
             ...current,
             empresa: company.empresa || current.empresa,
-            telefono: company.telefono || current.telefono,
             nit: company.nit || current.nit,
-            anydesk: company.anydesk || current.anydesk,
         }));
         setCompanySuggestionsOpen(false);
     }
