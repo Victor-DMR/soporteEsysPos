@@ -13,6 +13,7 @@ use App\Support\SupportErrorImageStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -222,6 +223,53 @@ class SupportController extends Controller
         event(new SupportCellUpdated($support, $field, $support->{$field}, $this->actor($request)));
 
         return response()->json(['support' => $support, 'field' => $field, 'value' => $support->{$field}]);
+    }
+
+    public function updateImages(Request $request, Support $support): JsonResponse
+    {
+        $this->authorizeSupportAccess($request, $support);
+
+        $validated = $request->validate([
+            'mode' => ['nullable', 'in:append,replace'],
+            'error_images' => ['required', 'array', 'min:1', 'max:'.SupportErrorImageStorage::MAX_FILES],
+            'error_images.*' => ['image', 'max:5120'],
+        ]);
+
+        $mode = $validated['mode'] ?? 'append';
+        $oldPaths = $support->storedErrorImagePaths();
+
+        if ($mode === 'append' && count($oldPaths) + count($request->file('error_images', [])) > SupportErrorImageStorage::MAX_FILES) {
+            throw ValidationException::withMessages([
+                'error_images' => 'Solo se permiten '.SupportErrorImageStorage::MAX_FILES.' imagenes por soporte.',
+            ]);
+        }
+
+        $newPaths = SupportErrorImageStorage::storeFromRequest($request);
+        $paths = $mode === 'replace'
+            ? $newPaths
+            : collect([...$oldPaths, ...$newPaths])->unique()->values()->all();
+
+        $support->forceFill([
+            'error_image_path' => $paths[0] ?? null,
+            'error_image_paths' => $paths ?: null,
+        ])->save();
+
+        if ($mode === 'replace') {
+            Storage::disk('public')->delete($oldPaths);
+        }
+
+        $support->logs()->create([
+            'user_id' => $request->user()->id,
+            'action' => $mode === 'replace' ? 'images_replaced' : 'images_added',
+            'field_name' => 'error_image_paths',
+            'old_value' => json_encode($oldPaths),
+            'new_value' => json_encode($paths),
+        ]);
+
+        $support->load('technician');
+        event(new SupportUpdated($support, $this->actor($request)));
+
+        return response()->json(['support' => $support]);
     }
 
     public function destroy(Request $request, Support $support): JsonResponse

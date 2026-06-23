@@ -833,7 +833,7 @@ function EditableSupportsTable({ supports, setSupports, technicians }) {
                                     return (
                                     <td key={field} className={`${isDetail ? 'px-1.5' : 'px-2'} ${isTime || isCompact ? 'whitespace-nowrap' : ''} border-y border-white/10 py-1 text-center align-middle last:rounded-r-2xl last:border-r ${index === 0 ? `rounded-l-2xl border-l-4 ${supportAccentClass(support.estado_soporte)}` : ''}`}>
                                         {field === 'estado_soporte' ? (
-                                            (editable || user?.role === 'tecnico') ? <EditableCell support={support} field={field} type="select" options={states} align="center" compact onUpdate={(s) => setSupports((rows) => rows.map((r) => r.id === s.id ? s : r))} /> : <SupportStatusBadge state={support[field]} />
+                                            (editable || user?.role === 'tecnico') ? <EditableCell support={support} field={field} type="select" options={states} align="center" compact solidStatus onUpdate={(s) => setSupports((rows) => rows.map((r) => r.id === s.id ? s : r))} /> : <SupportStatusBadge state={support[field]} solid />
                                         ) : field === 'tecnico_asignado_id' ? (
                                             canAssignTechnician
                                                 ? <EditableCell support={support} field={field} type="select" options={[{ value: '', label: 'Sin asignar' }, ...technicians.map((t) => ({ value: t.id, label: t.name }))]} align="center" compact onUpdate={(s) => setSupports((rows) => rows.map((r) => r.id === s.id ? s : r))} display={support.tecnico_asignado_nombre || 'Sin asignar'} />
@@ -931,11 +931,11 @@ function SupportMobileCard({ support, technicians, canAssignTechnician = false, 
                     <p className="text-xs font-bold uppercase text-slate-400">{support.codigo_soporte}</p>
                     <h3 className="mt-1 break-words text-base font-bold text-white">{support.empresa || 'Sin empresa'}</h3>
                 </div>
-                <SupportStatusBadge state={support.estado_soporte} />
+                <SupportStatusBadge state={support.estado_soporte} solid />
             </div>
             <div className="mt-4 grid gap-3">
                 <MobileField label="Estado">
-                    <EditableCell support={support} field="estado_soporte" type="select" options={states} onUpdate={onUpdate} />
+                    <EditableCell support={support} field="estado_soporte" type="select" options={states} solidStatus onUpdate={onUpdate} />
                 </MobileField>
                 <MobileField label="Técnico">
                     {canAssignTechnician
@@ -1154,9 +1154,15 @@ function SupportDetailModal({ support, technicians = [], onClose, onSaved }) {
                             <p className="text-sm font-semibold text-white">{support.empresa}</p>
                             <p className="text-sm text-slate-300">{support.telefono}</p>
                         </div>
-                        <SupportStatusBadge state={support.estado_soporte} />
+                        <SupportStatusBadge state={support.estado_soporte} solid />
                     </div>
-                    <SupportErrorImage support={support} />
+                    <SupportImagesEditor
+                        support={draft}
+                        onSaved={(updatedSupport) => {
+                            setDraft({ ...updatedSupport });
+                            onSaved(updatedSupport);
+                        }}
+                    />
                     <dl className="grid gap-4 md:grid-cols-2">
                         {fields.map(([key, label]) => (
                             <div key={key} className={`rounded-2xl border border-white/10 bg-[#202c33] p-4 ${key === 'detalles_soporte' || key === 'observacion_tecnico' ? 'md:col-span-2' : ''}`}>
@@ -1177,6 +1183,80 @@ function SupportDetailModal({ support, technicians = [], onClose, onSaved }) {
             </motion.form>
         </div>,
         document.body,
+    );
+}
+
+function SupportImagesEditor({ support, onSaved }) {
+    const [files, setFiles] = useState([]);
+    const [savingMode, setSavingMode] = useState(null);
+    const imageUrls = supportImageUrls(support);
+    const remainingSlots = Math.max(0, 8 - imageUrls.length);
+    const canAppendSelection = remainingSlots > 0 && files.length <= remainingSlots;
+
+    async function upload(mode) {
+        if (!files.length) {
+            toast.error('Selecciona al menos una foto');
+            return;
+        }
+
+        setSavingMode(mode);
+        try {
+            const data = new FormData();
+            data.append('mode', mode);
+            files.forEach((file) => data.append('error_images[]', file));
+
+            const response = await api.post(`/supports/${support.id}/images`, data);
+            onSaved(response.support);
+            setFiles([]);
+            toast.success(mode === 'replace' ? 'Fotos reemplazadas' : 'Fotos agregadas');
+        } catch (error) {
+            toast.error(validationMessage(error, 'No se pudieron guardar las fotos'));
+        } finally {
+            setSavingMode(null);
+        }
+    }
+
+    return (
+        <section className="mb-5 rounded-2xl border border-white/10 bg-[#0b141a]/45 p-4">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p className="text-xs font-bold uppercase text-slate-400">Fotos del error</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{imageUrls.length ? `${imageUrls.length} de 8 fotos cargadas` : 'Sin fotos cargadas'}</p>
+                </div>
+                {imageUrls.length > 0 && (
+                    <a className="btn-secondary min-h-0 px-3 py-2 text-xs" href={imageUrls[0]} target="_blank" rel="noreferrer">
+                        <Eye size={15} /> Ver primera
+                    </a>
+                )}
+            </div>
+
+            {imageUrls.length > 0 && (
+                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                    {imageUrls.map((url, index) => (
+                        <a key={url} className="block overflow-hidden rounded-xl border border-white/10 bg-[#111b21]" href={url} target="_blank" rel="noreferrer">
+                            <img className="h-48 w-full object-contain" src={url} alt={`Foto del error ${index + 1}`} />
+                        </a>
+                    ))}
+                </div>
+            )}
+
+            <ImageDropField
+                files={files}
+                onChange={setFiles}
+                disabled={Boolean(savingMode)}
+                maxFiles={8}
+                helperText={remainingSlots > 0 ? `Puedes agregar ${remainingSlots} foto(s) mas o reemplazar todas` : 'Ya hay 8 fotos; solo puedes reemplazarlas'}
+            />
+
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <button type="button" className="btn-secondary min-h-0 px-3 py-2 text-xs" disabled={!files.length || !canAppendSelection || Boolean(savingMode)} onClick={() => upload('append')}>
+                    {savingMode === 'append' ? <><LoaderCircle className="animate-spin" size={15} /> Agregando...</> : <><Plus size={15} /> Agregar fotos</>}
+                </button>
+                <button type="button" className="btn-primary px-3 py-2 text-xs" disabled={!files.length || Boolean(savingMode)} onClick={() => upload('replace')}>
+                    {savingMode === 'replace' ? <><LoaderCircle className="animate-spin" size={15} /> Reemplazando...</> : <><ImageIcon size={15} /> Reemplazar fotos</>}
+                </button>
+            </div>
+        </section>
     );
 }
 
@@ -1248,7 +1328,7 @@ function supportAccentClass(state) {
     return classes[state] || 'border-l-slate-500';
 }
 
-function EditableCell({ support, field, onUpdate, type = 'text', options = [], display, align = 'left', compact = false }) {
+function EditableCell({ support, field, onUpdate, type = 'text', options = [], display, align = 'left', compact = false, solidStatus = false }) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(support[field] ?? '');
     const [status, setStatus] = useState('idle');
@@ -1310,7 +1390,7 @@ function EditableCell({ support, field, onUpdate, type = 'text', options = [], d
 
     return (
         <button data-editable-cell="true" data-cell-key={cellKey} onClick={() => setEditing(true)} onDoubleClick={() => setEditing(true)} disabled={status === 'saving'} className={`editable-cell-display relative flex w-full items-center rounded-lg px-2 py-1 transition hover:bg-white/10 hover:shadow-sm disabled:cursor-wait disabled:opacity-85 ${isStatusField ? 'justify-center gap-1.5' : 'gap-2 pr-9'} ${compact ? 'min-h-8' : 'min-h-9'} ${centered ? 'justify-center text-center' : 'text-left'} ${flash ? 'table-cell-updated' : ''}`}>
-            {isStatusField ? <SupportStatusBadge state={support[field]} /> : <span className={`${isPhoneField ? 'whitespace-nowrap text-xs' : 'line-clamp-3'} font-semibold text-slate-100`}>{display ?? value ?? '-'}</span>}
+            {isStatusField ? <SupportStatusBadge state={support[field]} solid={solidStatus} /> : <span className={`${isPhoneField ? 'whitespace-nowrap text-xs' : 'line-clamp-3'} font-semibold text-slate-100`}>{display ?? value ?? '-'}</span>}
             <CellStatus status={status} inline={isStatusField} />
         </button>
     );
@@ -1354,15 +1434,27 @@ function ReadOnlyCell({ value, align = 'left', compact = false }) {
     return <span className={`flex items-center rounded-lg px-2 py-1 font-semibold text-slate-200 ${compact ? 'min-h-8' : 'min-h-9'} ${align === 'center' ? 'justify-center text-center' : ''}`}>{value || '-'}</span>;
 }
 
-function SupportStatusBadge({ state }) {
-    const classes = {
+function SupportStatusBadge({ state, solid = true }) {
+    const softClasses = {
         pendiente: 'bg-amber-100 text-amber-700 ring-amber-200',
         asignado: 'bg-sky-100 text-sky-700 ring-sky-200',
         en_proceso: 'bg-violet-100 text-violet-700 ring-violet-200',
         finalizado: 'bg-emerald-100 text-emerald-700 ring-emerald-200',
         cancelado: 'bg-rose-100 text-rose-700 ring-rose-200',
     };
-    return <span className={`inline-flex max-w-full items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold leading-none ring-1 ${classes[state] || classes.pendiente}`}>{stateLabel(state)}</span>;
+    const solidClasses = {
+        pendiente: 'bg-amber-400 text-amber-950 ring-amber-200/45 shadow-amber-950/20',
+        asignado: 'bg-sky-400 text-sky-950 ring-sky-200/45 shadow-sky-950/20',
+        en_proceso: 'bg-violet-500 text-violet-950 ring-violet-200/45 shadow-violet-950/20',
+        finalizado: 'bg-emerald-500 text-emerald-950 ring-emerald-200/45 shadow-emerald-950/20',
+        cancelado: 'bg-rose-500 text-rose-950 ring-rose-200/45 shadow-rose-950/20',
+    };
+    const classes = solid ? solidClasses : softClasses;
+    const shapeClass = solid
+        ? 'min-w-[76px] rounded-full px-2.5 py-1 text-xs font-bold shadow-sm'
+        : 'rounded-full px-2.5 py-1 text-xs font-bold';
+
+    return <span className={`inline-flex max-w-full items-center justify-center whitespace-nowrap leading-none ring-1 ${shapeClass} ${classes[state] || classes.pendiente}`}>{stateLabel(state)}</span>;
 }
 
 function TechnicianSelect({ value, technicians, onChange }) {
@@ -1616,10 +1708,9 @@ function useBodyScrollLock(locked) {
     }, [locked]);
 }
 
-function ImageDropField({ files = [], onChange, className = '', disabled = false }) {
+function ImageDropField({ files = [], onChange, className = '', disabled = false, maxFiles = 8, helperText = 'Hasta 8 imagenes opcionales del error' }) {
     const [dragging, setDragging] = useState(false);
     const selectedFiles = Array.isArray(files) ? files : (files ? [files] : []);
-    const maxFiles = 8;
     const maxFileSize = 5 * 1024 * 1024;
 
     function selectFiles(nextFiles) {
@@ -1687,7 +1778,7 @@ function ImageDropField({ files = [], onChange, className = '', disabled = false
                         {selectedFiles.length ? `${selectedFiles.length} imagen(es) seleccionada(s)` : 'Arrastra fotos aqui o haz clic para buscar'}
                     </span>
                     <span className="mt-1 block break-words text-xs font-semibold text-slate-400">
-                        Hasta 8 imagenes opcionales del error
+                        {helperText}
                     </span>
                 </span>
                 <input type="file" accept="image/*" multiple className="hidden" disabled={disabled} onChange={(e) => selectFiles(e.target.files)} />
@@ -2026,8 +2117,8 @@ function SupportDetailPage() {
         <Shell title={support.codigo_soporte} subtitle={`${support.empresa} - ${support.telefono}`} action={<WhatsAppButton support={support} />}>
             <div className="grid gap-6">
                 <div className="card p-5">
-                    <div className="mb-5 flex items-center justify-between"><h2 className="font-bold text-white">Información</h2><SupportStatusBadge state={support.estado_soporte} /></div>
-                    <SupportErrorImage support={support} />
+                    <div className="mb-5 flex items-center justify-between"><h2 className="font-bold text-white">Información</h2><SupportStatusBadge state={support.estado_soporte} solid /></div>
+                    <SupportImagesEditor support={support} onSaved={setSupport} />
                     <dl className="grid gap-4 md:grid-cols-2">
                         {Object.entries(support).filter(([k]) => !['logs', 'technician', 'error_image_path', 'error_image_paths', 'error_image_url', 'error_image_urls'].includes(k)).map(([key, value]) => <div key={key} className="min-w-0 rounded-2xl border border-white/10 bg-[#202c33] p-4"><dt className="text-xs font-bold uppercase text-slate-400">{key}</dt><dd className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-100">{String(value ?? '-')}</dd></div>)}
                     </dl>
@@ -2483,7 +2574,7 @@ function PublicSupportSummary({ support }) {
         <div className="card min-w-0 p-4 sm:p-5">
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <h2 className="break-words font-bold text-white">{support.codigo_soporte}</h2>
-                <SupportStatusBadge state={support.estado_soporte} />
+                <SupportStatusBadge state={support.estado_soporte} solid />
             </div>
 
             <div className="mt-4 flex items-center gap-3">
@@ -2655,7 +2746,7 @@ function MiniList({ supports }) {
                             <span>{s.tecnico_asignado_nombre || 'Sin asignar'}</span>
                         </div>
                     </div>
-                    <SupportStatusBadge state={s.estado_soporte} />
+                    <SupportStatusBadge state={s.estado_soporte} solid />
                 </Link>
             ))}
         </div>
@@ -2759,5 +2850,3 @@ function formatDateTime(value) {
 }
 
 createRoot(document.getElementById('root')).render(<App />);
-
-

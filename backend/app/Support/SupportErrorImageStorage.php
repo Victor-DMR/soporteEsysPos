@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class SupportErrorImageStorage
 {
     private const DIRECTORY = 'support-errors';
-    private const MAX_FILES = 8;
+    public const MAX_FILES = 8;
     private const MAX_SIDE = 1600;
     private const WEBP_QUALITY = 76;
 

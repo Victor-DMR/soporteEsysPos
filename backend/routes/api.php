@@ -36,6 +36,7 @@ Route::middleware(['auth:sanctum', 'role:administrador,tecnico'])->group(functio
     Route::get('/supports/{support}', [SupportController::class, 'show']);
     Route::patch('/supports/{support}', [SupportController::class, 'update']);
     Route::patch('/supports/{support}/cell', [SupportController::class, 'updateCell']);
+    Route::post('/supports/{support}/images', [SupportController::class, 'updateImages']);
     Route::delete('/supports/{support}', [SupportController::class, 'destroy']);
 
     Route::get('/technicians', [TechnicianController::class, 'index']);
